@@ -1,0 +1,244 @@
+{
+    "info": {
+      "name": "Blog API",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+      {
+        "name": "Auth",
+        "item": [
+          {
+            "name": "Register",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"username\": \"testuser\",\n    \"email\": \"test@example.com\",\n    \"password\": \"testpassword123\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/register",
+                "host": ["{{base_url}}"],
+                "path": ["register"]
+              }
+            },
+            "response": []
+          },
+          {
+            "name": "Login",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"username\": \"testuser\",\n    \"password\": \"testpassword123\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/login",
+                "host": ["{{base_url}}"],
+                "path": ["login"]
+              }
+            },
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "pm.test(\"Status code is 200\", function () {",
+                    "    pm.response.to.have.status(200);",
+                    "    var jsonData = pm.response.json();",
+                    "    pm.expect(jsonData.access_token).to.exist;",
+                    "    pm.collectionVariables.set(\"access_token\", jsonData.access_token);",
+                    "    pm.collectionVariables.set(\"user_id\", jsonData.user.id);",
+                    "});"
+                  ],
+                  "type": "text/javascript"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Posts",
+        "item": [
+          {
+            "name": "Create Post (Valid)",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{access_token}}"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"title\": \"Test Post\",\n    \"content\": \"This is a test post content\",\n    \"excerpt\": \"This is a test excerpt\",\n    \"is_published\": true,\n    \"tags\": [\"test\", \"api\"]\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/posts",
+                "host": ["{{base_url}}"],
+                "path": ["posts"]
+              }
+            },
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "pm.test(\"Status code is 201\", function () {",
+                    "    pm.response.to.have.status(201);",
+                    "    var jsonData = pm.response.json();",
+                    "    pm.expect(jsonData.post).to.exist;",
+                    "    pm.collectionVariables.set(\"test_post_id\", jsonData.post.id);",
+                    "    pm.collectionVariables.set(\"test_post_slug\", jsonData.post.slug);",
+                    "});"
+                  ],
+                  "type": "text/javascript"
+                }
+              }
+            ]
+          },
+          {
+            "name": "Create Post (Invalid)",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{access_token}}"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"title\": \"\"\n}"
+              },
+              "url": {
+                "raw": "{{base_url}}/posts",
+                "host": ["{{base_url}}"],
+                "path": ["posts"]
+              }
+            },
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "pm.test(\"Status code is 422\", function () {",
+                    "    pm.response.to.have.status(422);",
+                    "});",
+                    "",
+                    "pm.test(\"Response has error message\", function () {",
+                    "    var jsonData = pm.response.json();",
+                    "    pm.expect(jsonData.message).to.exist.and.to.be.a('string').and.not.be.empty;",
+                    "});"
+                  ],
+                  "type": "text/javascript"
+                }
+              }
+            ]
+          },
+          {
+            "name": "Get All Posts",
+            "request": {
+              "method": "GET",
+              "header": [],
+              "url": {
+                "raw": "{{base_url}}/posts?page=1&per_page=10",
+                "host": ["{{base_url}}"],
+                "path": ["posts"],
+                "query": [
+                  {
+                    "key": "page",
+                    "value": "1"
+                  },
+                  {
+                    "key": "per_page",
+                    "value": "10"
+                  }
+                ]
+              }
+            },
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "pm.test(\"Status code is 200\", function () {",
+                    "    pm.response.to.have.status(200);",
+                    "    var jsonData = pm.response.json();",
+                    "    pm.expect(jsonData.posts).to.be.an('array');",
+                    "});"
+                  ],
+                  "type": "text/javascript"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "variable": [
+      {
+        "key": "base_url",
+        "value": "http://localhost:5000"
+      },
+      {
+        "key": "access_token",
+        "value": ""
+      },
+      {
+        "key": "user_id",
+        "value": ""
+      },
+      {
+        "key": "test_post_id",
+        "value": ""
+      },
+      {
+        "key": "test_post_slug",
+        "value": ""
+      }
+    ],
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "// Pre-request script runs before each request in the collection",
+            "console.log('Running pre-request script');"
+          ]
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "// Test script runs after each request in the collection",
+            "console.log('Tests completed');"
+          ]
+        }
+      }
+    ]
+  }
